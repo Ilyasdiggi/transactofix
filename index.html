@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Transactofix | Know your best exchange rate</title>
+  <title>Transactofix</title>
   <meta name="description" content="Check the live mid-market exchange rate between any two currencies, so you know the best rate before you send or exchange money.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%238a8a8a'/%3E%3Cpath d='M30 34h60' stroke='%23f4f4f2' stroke-width='9' stroke-linecap='square'/%3E%3Cpath d='M36 63l18 20 30-38' fill='none' stroke='%23f4f4f2' stroke-width='9' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E">
   <style>
@@ -11,8 +11,7 @@
     html, body { margin: 0; min-height: 100%; }
     html { background: #8a8a8a; }
     body {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      padding: 48px 20px; position: relative; overflow-x: hidden; isolation: isolate;
+      min-height: 100vh; position: relative; overflow: hidden; isolation: isolate;
       font-family: "Helvetica Neue", "Segoe UI", Arial, sans-serif; color: #f4f4f2;
       background-color: #8a8a8a;
       background-image:
@@ -35,116 +34,62 @@
     }
     @keyframes metal { 0% { background-position: 100% 0; } 55%, 100% { background-position: 0 0; } }
 
-    main { width: 100%; max-width: 620px; display: flex; flex-direction: column; align-items: center; }
+    /* Centred logo */
+    .logo { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; pointer-events: none; }
+    .mark { width: 96px; height: 96px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)) drop-shadow(0 3px 8px rgba(0,0,0,0.18)); }
+    .word { font-weight: 600; font-size: 15px; letter-spacing: 0.42em; margin-right: -0.42em; }
 
-    /* Logo */
-    .logo { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 44px; }
-    .mark { width: 72px; height: 72px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)) drop-shadow(0 3px 8px rgba(0,0,0,0.18)); }
-    .word { font-weight: 600; font-size: 13px; letter-spacing: 0.42em; margin-right: -0.42em; }
-
-    h1 {
-      margin: 0 0 26px; text-align: center; font-weight: 800; letter-spacing: -0.01em; line-height: 1.05;
-      font-size: clamp(30px, 5.4vw, 46px); text-transform: uppercase;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
-    }
-
-    /* Converter card */
-    .card {
-      width: 100%; padding: 28px;
+    /* Small rate box, top right */
+    .fx {
+      position: fixed; top: 24px; right: 24px; z-index: 2; width: 330px; padding: 16px 18px;
       background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05));
-      border: 1px solid rgba(255,255,255,0.32); border-radius: 18px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.35);
+      border: 1px solid rgba(255,255,255,0.32); border-radius: 14px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.35);
       backdrop-filter: blur(6px);
     }
-    label.small { display: block; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.85); margin-bottom: 8px; }
-    .amount {
-      width: 100%; padding: 14px 16px; margin-bottom: 20px;
-      font-family: inherit; font-weight: 600; font-size: 22px; line-height: 1.2; color: #fff;
-      background: rgba(0,0,0,0.14); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; outline: none;
-    }
-    .amount:focus, select:focus { border-color: #fff; }
-    .pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: end; }
+    .fx h1 { margin: 0 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; white-space: nowrap; text-transform: uppercase; color: rgba(255,255,255,0.92); }
+    .pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+    .pair span { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
     select {
-      width: 100%; padding: 14px 38px 14px 16px; font-family: inherit; font-weight: 600; font-size: 16px; line-height: 1.2; color: #fff;
-      background: rgba(0,0,0,0.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;
-      border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+      width: 100%; padding: 9px 26px 9px 10px; font-family: inherit; font-weight: 600; font-size: 14px; color: #fff;
+      background: rgba(0,0,0,0.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23fff' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 9px center;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 9px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
     }
+    select:focus { border-color: #fff; }
     select option { color: #111; }
-    .to { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-bottom: 6px; }
-    .to span { font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.85); }
-    .swap {
-      width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
-      background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.4); transition: transform .3s, background .2s;
-    }
-    .swap:hover { background: rgba(255,255,255,0.24); transform: rotate(180deg); }
-    .swap svg { width: 18px; height: 18px; }
-
-    .result { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.25); text-align: center; min-height: 118px; }
-    .big { font-size: clamp(30px, 6vw, 44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; word-break: break-word; }
-    .rate { margin-top: 8px; font-size: 15px; color: rgba(255,255,255,0.92); }
-    .meta { margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.75); }
-    .tip { margin: 22px 0 0; text-align: center; font-size: 13px; color: rgba(255,255,255,0.82); max-width: 520px; line-height: 1.55; }
-    .credit { margin-top: 14px; font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 0.04em; }
-    .credit a { color: rgba(255,255,255,0.9); }
-    .err { color: #ffe1d6; }
+    .rate { margin-top: 12px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
+    .meta { margin-top: 4px; font-size: 10px; color: rgba(255,255,255,0.72); }
+    .meta a { color: rgba(255,255,255,0.85); }
+    .err { color: #ffe1d6; font-size: 13px; font-weight: 600; }
 
     @media (max-width: 560px) {
-      .card { padding: 20px; }
-      .pair { grid-template-columns: 1fr; }
-      .to { flex-direction: row; justify-content: center; padding: 0; }
-      .swap { transform: rotate(90deg); }
-      .swap:hover { transform: rotate(270deg); }
+      .fx { top: 14px; right: 14px; left: 14px; width: auto; }
     }
     @media (prefers-reduced-motion: reduce) {
       body::before, .shine-text { animation: none; }
-      .swap, .swap:hover { transition: none; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <div class="logo" role="img" aria-label="Transactofix">
-      <svg class="mark" viewBox="0 0 120 120" aria-hidden="true">
-        <rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#f4f4f2" stroke-width="4"/>
-        <path d="M30 34h60" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square"/>
-        <path d="M36 63l18 20 30-38" fill="none" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"/>
-      </svg>
-      <div class="word shine-text">TRANSACTOFIX</div>
+  <div class="logo" role="img" aria-label="Transactofix">
+    <svg class="mark" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#f4f4f2" stroke-width="4"/>
+      <path d="M30 34h60" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square"/>
+      <path d="M36 63l18 20 30-38" fill="none" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"/>
+    </svg>
+    <div class="word shine-text">TRANSACTOFIX</div>
+  </div>
+
+  <aside class="fx" aria-label="Exchange rate">
+    <h1>Know your best exchange rate</h1>
+    <div class="pair">
+      <select id="from" aria-label="Select currency"></select>
+      <span>to</span>
+      <select id="to" aria-label="Currency"></select>
     </div>
-
-    <h1 class="shine-text">Know your best<br>exchange rate</h1>
-
-    <div class="card">
-      <label class="small" for="amount">Amount</label>
-      <input class="amount" id="amount" type="number" min="0" step="any" value="1000" inputmode="decimal">
-
-      <div class="pair">
-        <div>
-          <label class="small" for="from">Select currency</label>
-          <select id="from" aria-label="From currency"></select>
-        </div>
-        <div class="to">
-          <span>to</span>
-          <button class="swap" id="swap" type="button" aria-label="Swap currencies">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg>
-          </button>
-        </div>
-        <div>
-          <label class="small" for="to">Currency</label>
-          <select id="to" aria-label="To currency"></select>
-        </div>
-      </div>
-
-      <div class="result" aria-live="polite">
-        <div class="big" id="big">&nbsp;</div>
-        <div class="rate" id="rate">Loading rates&hellip;</div>
-        <div class="meta" id="meta"></div>
-      </div>
-    </div>
-
-    <p class="tip">This is the mid-market rate, the real rate banks trade at. Compare it with the rate your bank or money-transfer service offers: the closer theirs is to this, the better your deal.</p>
-    <div class="credit"><a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a></div>
-  </main>
+    <div class="rate" id="rate" aria-live="polite">Loading&hellip;</div>
+    <div class="meta"><span id="meta"></span> <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a></div>
+  </aside>
 
   <script>
   (function () {
@@ -152,16 +97,6 @@
     var $ = function (id) { return document.getElementById(id); };
     var POPULAR = ["EUR", "GBP", "USD", "INR", "AED", "CAD", "AUD", "CHF", "JPY", "CNY", "PLN", "SGD"];
     var cache = {};            // base currency -> API response
-    var names = null;
-    try { names = new Intl.DisplayNames(["en"], { type: "currency" }); } catch (e) {}
-    function label(code) {
-      var n = ""; try { n = names ? names.of(code) : ""; } catch (e) {}
-      return n && n !== code ? code + " - " + n : code;
-    }
-    function fmt(n, code) {
-      try { return new Intl.NumberFormat("en-IE", { style: "currency", currency: code, maximumFractionDigits: n < 1 ? 6 : 2 }).format(n); }
-      catch (e) { return n.toFixed(2) + " " + code; }
-    }
     function rateFmt(n) { return n >= 100 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toPrecision(4); }
 
     function getRates(base) {
@@ -182,23 +117,19 @@
       $("from").innerHTML = html; $("to").innerHTML = html;
       $("from").value = "EUR"; $("to").value = "GBP";
     }
-    function opt(c) { return '<option value="' + c + '">' + label(c) + "</option>"; }
+    function opt(c) { return '<option value="' + c + '">' + c + "</option>"; }
 
     function update() {
       var from = $("from").value, to = $("to").value;
-      var amt = parseFloat($("amount").value);
-      if (isNaN(amt) || amt < 0) amt = 0;
       getRates(from).then(function (j) {
         var r = j.rates[to];
         if (r == null) throw new Error("No rate for " + to);
-        $("big").textContent = fmt(amt * r, to);
-        $("rate").textContent = "1 " + from + " = " + rateFmt(r) + " " + to + "   ·   1 " + to + " = " + rateFmt(1 / r) + " " + from;
-        var d = new Date(j.time_last_update_unix * 1000);
-        $("meta").textContent = "Mid-market rate, updated " + d.toLocaleString("en-IE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
+        $("rate").textContent = "1 " + from + " = " + rateFmt(r) + " " + to;
         $("rate").classList.remove("err");
+        var d = new Date(j.time_last_update_unix * 1000);
+        $("meta").textContent = "Mid-market, " + d.toLocaleDateString("en-IE", { day: "numeric", month: "short", timeZone: "UTC" }) + " \u00B7";
       }).catch(function () {
-        $("big").innerHTML = "&nbsp;";
-        $("rate").textContent = "Couldn't load exchange rates right now. Please try again in a moment.";
+        $("rate").textContent = "Rates unavailable, try again shortly.";
         $("rate").classList.add("err");
         $("meta").textContent = "";
       });
@@ -211,10 +142,6 @@
 
     $("from").addEventListener("change", update);
     $("to").addEventListener("change", update);
-    $("amount").addEventListener("input", update);
-    $("swap").addEventListener("click", function () {
-      var a = $("from").value; $("from").value = $("to").value; $("to").value = a; update();
-    });
   })();
   </script>
 </body>
