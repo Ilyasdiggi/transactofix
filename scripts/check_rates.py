@@ -34,7 +34,7 @@ SOURCES = [
      "re": ASPORA_RE, "fee": 2.99, "feeNote": "Flat 2.99 USD"},
 ]
 
-MAX_GAP = 0.05  # a reading more than 5% away from the mid-market rate is rejected
+MAX_GAP = 0.015  # a reading more than 1.5% away from the mid-market rate is rejected (catches stale or placeholder figures)
 
 
 def utc_now():
@@ -101,7 +101,7 @@ def run(browser):
             mids[src["pair"]] = mid_market(base, quote)
         mid = mids[src["pair"]]
         if mid and abs(rate - mid) / mid > MAX_GAP:
-            print(f"  {label}: {rate} is more than 5% from mid-market {mid}, ignored")
+            print(f"  {label}: {rate} is more than 1.5% from mid-market {mid}, ignored")
             failed.append(label)
             continue
 
