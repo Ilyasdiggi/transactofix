@@ -5,10 +5,10 @@
     "EUR-INR": [
       {
         "name": "Scopex",
-        "rate": 103.95,
+        "rate": 101.83,
         "fee": 0,
         "feeNote": "Zero transfer fee",
-        "checked": "2026-11-20T13:01:31Z",
+        "checked": "2026-11-20T12:52:00Z",
         "source": "https://scopex.com/send-money/ireland-to-india/"
       },
       {
@@ -23,10 +23,10 @@
     "USD-INR": [
       {
         "name": "Scopex",
-        "rate": 94.35,
+        "rate": 92.77,
         "fee": 0,
         "feeNote": "Zero transfer fee",
-        "checked": "2026-11-20T13:01:31Z",
+        "checked": "2026-11-20T12:52:00Z",
         "source": "https://scopex.com/send-money/us-to-india/"
       },
       {
