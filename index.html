@@ -75,6 +75,14 @@
     ol.list li .who b { display: block; font-size: 14px; color: #fff; font-weight: 700; }
     ol.list li .get { text-align: right; }
     ol.list li .get b { display: block; font-size: 14px; color: #fff; font-weight: 700; white-space: nowrap; }
+    .ref { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .ref .app {
+      display: inline-block; padding: 5px 10px; border-radius: 7px; text-decoration: none; white-space: nowrap;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: #1b1b1b;
+      background: linear-gradient(100deg, #ececea, #ffffff 50%, #dcdcd8); box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .ref .app:hover { background: #fff; }
+    .ref .tag { white-space: nowrap; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
     ol.list li.pin { border-top: 1px dashed rgba(255,255,255,0.35); }
     ol.list li:first-child .who b::after { content: "BEST"; margin-left: 6px; padding: 1px 5px; font-size: 9px; letter-spacing: 0.12em; border: 1px solid rgba(255,255,255,0.7); border-radius: 4px; vertical-align: 2px; }
     .meta { margin-top: 8px; font-size: 10px; line-height: 1.5; color: rgba(255,255,255,0.72); }
@@ -121,6 +129,10 @@
     var $ = function (id) { return document.getElementById(id); };
     var POPULAR = ["EUR", "GBP", "USD", "INR", "AED", "CAD", "AUD", "CHF", "PKR", "PHP", "NGN", "PLN"];
     var PINNED = ["Remitly"];   // always shown, even when outside the top 5
+    // Referral links shown as a "Get the app" button on that provider's row
+    var REFERRALS = {
+      scopex: { url: "https://app.scopex.com/oIvj?af_xp=referral&pid=User_invite&deep_link_value=referral&deep_link_sub1=DVIL7Y", label: "Get Scopex app" }
+    };
     var midCache = {}, cmpCache = {}, timer = null, seq = 0;
 
     function rateFmt(n) { return n >= 100 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toPrecision(4); }
@@ -214,7 +226,7 @@
               var feeTxt = p.feeUnknown ? "fee in app" : "Fee " + money(p.fee, from);
               var when = p.checked ? " &middot; " + ago(p.checked) : "";
               return '<li' + (p.pinned ? ' class="pin"' : '') + '><span class="n">' + p.rank + '</span>' +
-                '<span class="who"><b>' + name + '</b>Rate ' + rateFmt(p.rate) + ' &middot; ' + feeTxt + when + '</span>' +
+                '<span class="who"><b>' + name + '</b>Rate ' + rateFmt(p.rate) + ' &middot; ' + feeTxt + when + refBtn(p.name) + '</span>' +
                 '<span class="get"><b>' + money(p.get, to) + '</b>they receive</span></li>';
             }).join("");
           }
@@ -234,6 +246,12 @@
           $("list").innerHTML = '<li class="err">Rates unavailable, try again shortly.</li>';
         });
       });
+    }
+    function refBtn(name) {
+      var r = REFERRALS[String(name).toLowerCase()];
+      if (!r) return "";
+      return '<span class="ref"><a class="app" href="' + esc(r.url) + '" target="_blank" rel="sponsored noopener">' + esc(r.label) + ' &rarr;</a>' +
+             '<span class="tag">referral link</span></span>';
     }
     function later() { clearTimeout(timer); timer = setTimeout(update, 400); }
 
