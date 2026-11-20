@@ -1,6 +1,6 @@
 {
   "about": "Rates read from each provider's public website by the Transactofix scheduled check (3 times a day). fee is in the sending currency; null means unknown.",
-  "updated": "2026-11-20T13:10:43Z",
+  "updated": "2026-11-20T13:15:12Z",
   "pairs": {
     "EUR-INR": [
       {
@@ -16,7 +16,7 @@
         "rate": 101.81,
         "fee": 3,
         "feeNote": "About 3 EUR, exact fee shown in app; first transfer free",
-        "checked": "2026-11-20T13:10:41Z",
+        "checked": "2026-11-20T13:15:09Z",
         "source": "https://www.aspora.com/live-currency-rates/eur-to-inr"
       }
     ],
@@ -31,20 +31,20 @@
       },
       {
         "name": "Aspora",
-        "rate": 92.63,
+        "rate": 92.59,
         "fee": 2.99,
         "feeNote": "Flat 2.99 USD",
-        "checked": "2026-11-20T13:10:43Z",
+        "checked": "2026-11-20T13:15:12Z",
         "source": "https://www.aspora.com/live-currency-rates/usd-to-inr"
       }
     ],
     "GBP-INR": [
       {
         "name": "Aspora",
-        "rate": 121.59,
+        "rate": 121.51,
         "fee": 3,
         "feeNote": "Flat 3 GBP; first transfer free",
-        "checked": "2026-11-20T13:10:42Z",
+        "checked": "2026-11-20T13:15:10Z",
         "source": "https://www.aspora.com/live-currency-rates/gbp-to-inr"
       }
     ]
