@@ -144,6 +144,20 @@
         .then(function (j) { cmpCache[key] = j; return j; });
     }
 
+    // Scopex / Aspora rates recorded by the scheduled check (rates/partners.json)
+    var partnersP = null;
+    function getPartners() {
+      if (!partnersP) partnersP = fetch("rates/partners.json?t=" + Math.floor(Date.now() / 600000))
+        .then(function (r) { return r.ok ? r.json() : { pairs: {} }; })
+        .catch(function () { return { pairs: {} }; });
+      return partnersP;
+    }
+    function ago(iso) {
+      var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+      if (m < 60) return m + " min ago";
+      var h = Math.round(m / 60); return h < 48 ? h + " h ago" : Math.round(h / 24) + " days ago";
+    }
+
     function fill(codes) {
       var popular = POPULAR.filter(function (c) { return codes.indexOf(c) !== -1; });
       var rest = codes.filter(function (c) { return popular.indexOf(c) === -1; }).sort();
@@ -163,16 +177,23 @@
       if (from === to) { $("mid").textContent = "1 " + from + " = 1 " + to; $("list").innerHTML = '<li class="err">Pick two different currencies.</li>'; $("meta").textContent = ""; return; }
       $("list").innerHTML = '<li><span></span><span>Checking apps&hellip;</span><span></span></li>';
 
-      getQuotes(from, to, amount).then(function (j) {
+      var wiseP = getQuotes(from, to, amount).catch(function () { return null; });
+      Promise.all([wiseP, getPartners()]).then(function (res) {
         if (my !== seq) return;
-        var quotes = [];
-        var mid = null;
-        (j.providers || []).forEach(function (p) {
+        var j = res[0], partners = (res[1].pairs || {})[from + "-" + to] || [];
+        var quotes = [], mid = null;
+        if (j) (j.providers || []).forEach(function (p) {
           var q = (p.quotes || [])[0];
           if (!q || !(q.receivedAmount > 0)) return;
           if (q.isConsideredMidMarketRate || q.markup === 0) mid = mid || q.rate;
           if (p.type === "bank") return;               // apps and transfer services only
           quotes.push({ name: p.name, rate: q.rate, fee: q.fee, get: q.receivedAmount });
+        });
+        partners.forEach(function (p) {
+          if (!(p.rate > 0) || Date.now() - new Date(p.checked).getTime() > 36 * 3600000) return;   // skip stale readings
+          var fee = p.fee == null ? 0 : p.fee;
+          quotes = quotes.filter(function (q) { return q.name.toLowerCase() !== p.name.toLowerCase(); });
+          quotes.push({ name: p.name, rate: p.rate, fee: fee, feeUnknown: p.fee == null, get: Math.max(0, amount - fee) * p.rate, checked: p.checked, source: p.source });
         });
         quotes.sort(function (a, b) { return b.get - a.get; });
         var top = quotes.slice(0, 5);
@@ -182,19 +203,21 @@
           if (!top.length) { $("list").innerHTML = '<li class="err">No app quotes for this pair yet.</li>'; }
           else {
             $("list").innerHTML = top.map(function (p, i) {
+              var name = p.source ? '<a href="' + esc(p.source) + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">' + esc(p.name) + '</a>' : esc(p.name);
+              var feeTxt = p.feeUnknown ? "fee in app" : "Fee " + money(p.fee, from);
+              var when = p.checked ? " &middot; " + ago(p.checked) : "";
               return '<li><span class="n">' + (i + 1) + '</span>' +
-                '<span class="who"><b>' + esc(p.name) + '</b>Rate ' + rateFmt(p.rate) + ' &middot; Fee ' + money(p.fee, from) + '</span>' +
+                '<span class="who"><b>' + name + '</b>Rate ' + rateFmt(p.rate) + ' &middot; ' + feeTxt + when + '</span>' +
                 '<span class="get"><b>' + money(p.get, to) + '</b>they receive</span></li>';
             }).join("");
           }
-          $("meta").innerHTML = "Ranked by amount received after fees. Quotes collected by " +
+          $("meta").innerHTML = "Ranked by amount received after fees. Quotes from " +
             '<a href="https://wise.com/gb/compare/" target="_blank" rel="noopener">Wise comparison</a>' +
-            "; some may be a few days old. Not every app is covered. Check the final rate in the app before sending. " +
+            " plus Scopex and Aspora rates checked 3 times a day from their websites. Some may be a few hours or days old; not every app is covered. Check the final rate in the app before sending. " +
             '<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>';
         });
       }).catch(function () {
         if (my !== seq) return;
-        // Fall back to the daily mid-market rate only
         getMid(from).then(function (m) {
           $("mid").textContent = "1 " + from + " = " + rateFmt(m.rates[to]) + " " + to;
           $("list").innerHTML = '<li class="err">App comparison isn\'t available for this pair right now.</li>';
