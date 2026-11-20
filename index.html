@@ -75,6 +75,7 @@
     ol.list li .who b { display: block; font-size: 14px; color: #fff; font-weight: 700; }
     ol.list li .get { text-align: right; }
     ol.list li .get b { display: block; font-size: 14px; color: #fff; font-weight: 700; white-space: nowrap; }
+    ol.list li.pin { border-top: 1px dashed rgba(255,255,255,0.35); }
     ol.list li:first-child .who b::after { content: "BEST"; margin-left: 6px; padding: 1px 5px; font-size: 9px; letter-spacing: 0.12em; border: 1px solid rgba(255,255,255,0.7); border-radius: 4px; vertical-align: 2px; }
     .meta { margin-top: 8px; font-size: 10px; line-height: 1.5; color: rgba(255,255,255,0.72); }
     .meta a { color: rgba(255,255,255,0.88); }
@@ -119,6 +120,7 @@
     "use strict";
     var $ = function (id) { return document.getElementById(id); };
     var POPULAR = ["EUR", "GBP", "USD", "INR", "AED", "CAD", "AUD", "CHF", "PKR", "PHP", "NGN", "PLN"];
+    var PINNED = ["Remitly"];   // always shown, even when outside the top 5
     var midCache = {}, cmpCache = {}, timer = null, seq = 0;
 
     function rateFmt(n) { return n >= 100 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toPrecision(4); }
@@ -196,7 +198,12 @@
           quotes.push({ name: p.name, rate: p.rate, fee: fee, feeUnknown: p.fee == null, get: Math.max(0, amount - fee) * p.rate, checked: p.checked, source: p.source });
         });
         quotes.sort(function (a, b) { return b.get - a.get; });
+        quotes.forEach(function (q, i) { q.rank = i + 1; });
         var top = quotes.slice(0, 5);
+        PINNED.forEach(function (name) {
+          var q = quotes.filter(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })[0];
+          if (q && top.indexOf(q) === -1) { q.pinned = true; top.push(q); }
+        });
         return (mid ? Promise.resolve(mid) : getMid(from).then(function (m) { return m.rates[to]; })).then(function (m) {
           if (my !== seq) return;
           $("mid").textContent = "1 " + from + " = " + rateFmt(m) + " " + to;
@@ -206,7 +213,7 @@
               var name = p.source ? '<a href="' + esc(p.source) + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">' + esc(p.name) + '</a>' : esc(p.name);
               var feeTxt = p.feeUnknown ? "fee in app" : "Fee " + money(p.fee, from);
               var when = p.checked ? " &middot; " + ago(p.checked) : "";
-              return '<li><span class="n">' + (i + 1) + '</span>' +
+              return '<li' + (p.pinned ? ' class="pin"' : '') + '><span class="n">' + p.rank + '</span>' +
                 '<span class="who"><b>' + name + '</b>Rate ' + rateFmt(p.rate) + ' &middot; ' + feeTxt + when + '</span>' +
                 '<span class="get"><b>' + money(p.get, to) + '</b>they receive</span></li>';
             }).join("");
