@@ -4,7 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Transactofix</title>
-  <style>html, body { margin: 0; height: 100%; background: #8a8a8a; }</style>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%238a8a8a'/%3E%3Cpath d='M30 34h60' stroke='%23f4f4f2' stroke-width='9' stroke-linecap='square'/%3E%3Cpath d='M36 63l18 20 30-38' fill='none' stroke='%23f4f4f2' stroke-width='9' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E">
+  <style>
+    html, body { margin: 0; height: 100%; background: #8a8a8a; }
+    body { display: flex; align-items: center; justify-content: center; }
+    .logo { display: flex; flex-direction: column; align-items: center; gap: 22px; color: #f4f4f2; }
+    .mark { width: 96px; height: 96px; }
+    .word {
+      font-family: "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+      font-weight: 600; font-size: 15px; letter-spacing: 0.42em;
+      margin-right: -0.42em; /* balance trailing letter-spacing */
+    }
+  </style>
 </head>
-<body></body>
+<body>
+  <div class="logo" role="img" aria-label="Transactofix">
+    <svg class="mark" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#f4f4f2" stroke-width="4"/>
+      <path d="M30 34h60" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square"/>
+      <path d="M36 63l18 20 30-38" fill="none" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"/>
+    </svg>
+    <div class="word">TRANSACTOFIX</div>
+  </div>
+</body>
 </html>
