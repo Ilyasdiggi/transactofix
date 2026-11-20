@@ -22,19 +22,22 @@ SCOPEX_RE = r"1\s*{cur}\s*=\s*([\d.,]+)\s*INR"
 ASPORA_RE = r"Live Google rate:\s*[^\d\s]*\s*1\s*=\s*[^\d\s]*\s*([\d.,]+)"
 
 SOURCES = [
-    {"pair": "EUR-INR", "name": "Scopex", "url": "https://scopex.com/send-money/ireland-to-india/",
-     "re": SCOPEX_RE.format(cur="EUR"), "fee": 0, "feeNote": "Zero transfer fee"},
-    {"pair": "USD-INR", "name": "Scopex", "url": "https://scopex.com/send-money/us-to-india/",
-     "re": SCOPEX_RE.format(cur="USD"), "fee": 0, "feeNote": "Zero transfer fee"},
+    # Aspora shows the live Google (mid-market) rate, so it is read first and used
+    # as the reference for checking the other readings in the same run.
     {"pair": "EUR-INR", "name": "Aspora", "url": "https://www.aspora.com/live-currency-rates/eur-to-inr",
      "re": ASPORA_RE, "fee": 3, "feeNote": "About 3 EUR, exact fee shown in app; first transfer free"},
     {"pair": "GBP-INR", "name": "Aspora", "url": "https://www.aspora.com/live-currency-rates/gbp-to-inr",
      "re": ASPORA_RE, "fee": 3, "feeNote": "Flat 3 GBP; first transfer free"},
     {"pair": "USD-INR", "name": "Aspora", "url": "https://www.aspora.com/live-currency-rates/usd-to-inr",
      "re": ASPORA_RE, "fee": 2.99, "feeNote": "Flat 2.99 USD"},
+    {"pair": "EUR-INR", "name": "Scopex", "url": "https://scopex.com/send-money/ireland-to-india/",
+     "re": SCOPEX_RE.format(cur="EUR"), "fee": 0, "feeNote": "Zero transfer fee"},
+    {"pair": "USD-INR", "name": "Scopex", "url": "https://scopex.com/send-money/us-to-india/",
+     "re": SCOPEX_RE.format(cur="USD"), "fee": 0, "feeNote": "Zero transfer fee"},
 ]
 
-MAX_GAP = 0.015  # a reading more than 1.5% away from the mid-market rate is rejected (catches stale or placeholder figures)
+MAX_GAP_LIVE = 0.01    # vs the live Google rate read in this run (Aspora)
+MAX_GAP_DAILY = 0.015  # vs the daily mid-market rate, when no live reading is available
 
 
 def utc_now():
@@ -83,6 +86,7 @@ def run(browser):
     )
     page = context.new_page()
     mids = {}
+    google = {}  # live Google rates read from Aspora in this run
 
     for src in SOURCES:
         label = f"{src['name']} {src['pair']}"
@@ -97,13 +101,19 @@ def run(browser):
             continue
 
         base, quote = src["pair"].split("-")
-        if src["pair"] not in mids:
-            mids[src["pair"]] = mid_market(base, quote)
-        mid = mids[src["pair"]]
-        if mid and abs(rate - mid) / mid > MAX_GAP:
-            print(f"  {label}: {rate} is more than 1.5% from mid-market {mid}, ignored")
+        live = google.get(src["pair"])
+        if live and src["name"] != "Aspora":
+            ref, gap, what = live, MAX_GAP_LIVE, "the live Google rate"
+        else:
+            if src["pair"] not in mids:
+                mids[src["pair"]] = mid_market(base, quote)
+            ref, gap, what = mids[src["pair"]], MAX_GAP_DAILY, "the daily mid-market rate"
+        if ref and abs(rate - ref) / ref > gap:
+            print(f"  {label}: {rate} is more than {gap:.1%} from {what} ({ref}), ignored as stale or placeholder")
             failed.append(label)
             continue
+        if src["name"] == "Aspora":
+            google[src["pair"]] = rate
 
         checked = utc_now()
         entries = pairs.setdefault(src["pair"], [])
