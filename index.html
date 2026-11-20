@@ -3,404 +3,52 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Transactofix | Books that balance</title>
-  <meta name="description" content="Transactofix: bank reconciliation, ERPNext implementation and finance clean-up for growing businesses in Ireland and the UK. Try the free transaction matcher.">
+  <title>Transactofix</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%238a8a8a'/%3E%3Cpath d='M30 34h60' stroke='%23f4f4f2' stroke-width='9' stroke-linecap='square'/%3E%3Cpath d='M36 63l18 20 30-38' fill='none' stroke='%23f4f4f2' stroke-width='9' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E">
   <style>
-    :root {
-      --grey: #8a8a8a;
-      --graphite: #161616;
-      --graphite-2: #1f1f1f;
-      --line: rgba(255,255,255,0.12);
-      --ink: #f4f4f2;
-      --soft: #b9b9b6;
-      --muted: #8f8f8c;
-      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-      --ticks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.07' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M10 12h12'/%3E%3Cpath d='M11 18l4 4 7-8'/%3E%3Cpath d='M46 48h12'/%3E%3Cpath d='M47 54l4 4 7-8'/%3E%3C/g%3E%3C/svg%3E");
-      --display: "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    html, body { margin: 0; height: 100%; }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; isolation: isolate;
+      background-color: #8a8a8a;
+      background-image:
+        radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.22) 100%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.07' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M10 12h12'/%3E%3Cpath d='M11 18l4 4 7-8'/%3E%3Cpath d='M46 48h12'/%3E%3Cpath d='M47 54l4 4 7-8'/%3E%3C/g%3E%3C/svg%3E");
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; background: var(--graphite); color: var(--ink); font-family: var(--display); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    a { color: inherit; }
-    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
-
-    /* Brand textures */
-    .tex-grey {
-      background-color: var(--grey);
-      background-image: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.22) 100%), var(--grain), var(--ticks);
-    }
-    .tex-dark {
-      background-color: var(--graphite);
-      background-image: var(--grain), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.035' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M10 12h12'/%3E%3Cpath d='M11 18l4 4 7-8'/%3E%3Cpath d='M46 48h12'/%3E%3Cpath d='M47 54l4 4 7-8'/%3E%3C/g%3E%3C/svg%3E");
-    }
-
-    /* Header */
-    header.top { position: fixed; inset: 0 0 auto 0; z-index: 20; transition: background .3s, backdrop-filter .3s; }
-    header.top.solid { background: rgba(22,22,22,0.82); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-    header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
-    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-    .brand svg { width: 30px; height: 30px; }
-    .brand span { font-weight: 600; font-size: 13px; letter-spacing: 0.38em; }
-    nav { display: flex; align-items: center; gap: 30px; }
-    nav a { text-decoration: none; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); }
-    nav a:hover { color: var(--ink); }
-
-    .btn {
-      display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px;
-      background: var(--ink); color: var(--graphite); text-decoration: none; border: 0; cursor: pointer;
-      font: 600 13px/1 var(--display); letter-spacing: 0.16em; text-transform: uppercase;
-      transition: transform .2s, background .2s;
-    }
-    .btn:hover { transform: translateY(-2px); background: #fff; }
-    .btn.line { background: transparent; color: var(--ink); border: 1px solid rgba(255,255,255,0.55); }
-    .btn.line:hover { background: rgba(255,255,255,0.08); }
-    nav .btn { padding: 11px 18px; color: var(--graphite); }
-
-    /* Hero */
-    .hero { min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; padding: 120px 0 80px; }
-    .hero .giant {
-      position: absolute; right: -6vw; top: 50%; transform: translateY(-50%);
-      width: 58vw; max-width: 760px; opacity: 0.09; pointer-events: none;
-    }
-    .eyebrow { font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: rgba(255,255,255,0.78); margin: 0 0 22px; }
-    h1, h2 { font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95; margin: 0; }
-    h1 { font-size: clamp(54px, 9vw, 128px); max-width: 900px; }
-    .hero p.sub { font-size: clamp(17px, 1.6vw, 21px); max-width: 560px; color: rgba(255,255,255,0.86); margin: 28px 0 40px; }
-    .hero .actions { display: flex; gap: 14px; flex-wrap: wrap; }
-    .scroll-hint { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
-    .scroll-hint::after { content: ""; display: block; width: 1px; height: 34px; margin: 10px auto 0; background: rgba(255,255,255,0.6); animation: drip 1.8s infinite; transform-origin: top; }
-    @keyframes drip { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
-
-    section { padding: 140px 0; }
-    h2 { font-size: clamp(40px, 6vw, 84px); }
-    .lead { font-size: clamp(17px, 1.5vw, 20px); color: var(--soft); max-width: 620px; margin: 26px 0 0; }
-
-    /* Statement */
-    .statement { text-align: center; }
-    .statement h2 { max-width: 1000px; margin: 0 auto; }
-    .statement h2 em { font-style: normal; color: var(--muted); }
-
-    /* Split feature */
-    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-    .panel {
-      background: var(--graphite-2); border: 1px solid var(--line); padding: 28px;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.45);
-    }
-    .panel .bar { display: flex; gap: 7px; margin-bottom: 22px; }
-    .panel .bar i { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3a; }
-    .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .tile { border: 1px solid var(--line); padding: 18px; }
-    .tile b { display: block; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
-    .tile span { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-    .tile.alert b { color: #e8b7a8; }
-    .rows { margin-top: 16px; border-top: 1px solid var(--line); }
-    .rows div { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--soft); }
-    .rows div b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-    .checks { list-style: none; padding: 0; margin: 34px 0 40px; }
-    .checks li { padding: 14px 0 14px 34px; border-bottom: 1px solid var(--line); position: relative; color: var(--soft); }
-    .checks li::before { content: ""; position: absolute; left: 2px; top: 22px; width: 12px; height: 6px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); }
-
-    /* Service rows */
-    .services h2 { margin-bottom: 60px; }
-    .svc { display: grid; grid-template-columns: 64px 1fr auto; gap: 28px; align-items: center; padding: 34px 0; border-top: 1px solid var(--line); text-decoration: none; transition: padding .25s; }
-    .svc:last-child { border-bottom: 1px solid var(--line); }
-    .svc:hover { padding-left: 12px; }
-    .svc .ic { width: 64px; height: 64px; border: 1px solid rgba(255,255,255,0.35); display: grid; place-items: center; }
-    .svc .ic svg { width: 30px; height: 30px; }
-    .svc h3 { margin: 0 0 6px; font-size: clamp(20px, 2.2vw, 28px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; }
-    .svc p { margin: 0; color: var(--soft); max-width: 640px; }
-    .svc .more { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--soft); white-space: nowrap; }
-    .svc:hover .more { color: var(--ink); }
-
-    /* Steps on grey */
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 70px; border-top: 1px solid rgba(255,255,255,0.35); }
-    .step { padding: 34px 34px 0 0; }
-    .step .n { font-size: 13px; letter-spacing: 0.3em; color: rgba(255,255,255,0.8); }
-    .step h3 { font-size: 26px; text-transform: uppercase; margin: 14px 0 10px; font-weight: 800; letter-spacing: -0.01em; }
-    .step p { margin: 0; color: rgba(255,255,255,0.86); }
-
-    /* Trust */
-    .trust { text-align: center; }
-    .trust .shield { width: 74px; height: 74px; margin: 0 auto 36px; }
-    .trust .lead { margin: 26px auto 0; }
-
-    /* Stats */
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .stat { padding: 48px 24px; border-right: 1px solid var(--line); }
-    .stat:last-child { border-right: 0; }
-    .stat b { display: block; font-size: clamp(40px, 5vw, 64px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
-    .stat span { display: block; margin-top: 12px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
-
-    /* FAQ */
-    .faq h2 { margin-bottom: 50px; }
-    details { border-top: 1px solid var(--line); }
-    details:last-of-type { border-bottom: 1px solid var(--line); }
-    summary { list-style: none; cursor: pointer; padding: 28px 0; display: flex; justify-content: space-between; align-items: center; gap: 20px; font-size: clamp(17px, 1.7vw, 21px); font-weight: 600; }
-    summary::-webkit-details-marker { display: none; }
-    summary::after { content: ""; flex: none; width: 12px; height: 12px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); transition: transform .25s; margin-right: 6px; }
-    details[open] summary::after { transform: rotate(225deg); }
-    details p { margin: 0 0 28px; color: var(--soft); max-width: 760px; }
-
-    /* Contact */
-    .contact .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
-    form { display: grid; gap: 16px; }
-    label { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.85); display: block; margin-bottom: 6px; }
-    input, textarea, select {
-      width: 100%; padding: 14px 0; background: transparent; color: var(--ink); font: 16px var(--display);
-      border: 0; border-bottom: 1px solid rgba(255,255,255,0.5); outline: none; border-radius: 0;
-    }
-    input:focus, textarea:focus, select:focus { border-bottom-color: #fff; }
-    select option { color: #111; }
-    textarea { min-height: 110px; resize: vertical; }
-
-    /* Footer */
-    footer { padding: 80px 0 40px; border-top: 1px solid var(--line); }
-    .fgrid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
-    .fgrid h4 { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin: 0 0 18px; font-weight: 600; }
-    .fgrid a { display: block; text-decoration: none; color: var(--soft); margin-bottom: 10px; font-size: 14px; }
-    .fgrid a:hover { color: var(--ink); }
-    .fgrid p { color: var(--muted); font-size: 14px; max-width: 320px; }
-    .legal { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
-
-    /* Shine: slow light sweep across the matte grey */
-    .shine { position: relative; overflow: hidden; isolation: isolate; }
-    .shine::before {
+    /* Soft light sweep across the matte grey */
+    body::before {
       content: ""; position: absolute; inset: -20% -50%; z-index: -1; pointer-events: none;
-      background: linear-gradient(112deg, rgba(255,255,255,0) 38%, rgba(255,255,255,0.16) 47%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.16) 53%, rgba(255,255,255,0) 62%);
+      background: linear-gradient(112deg, rgba(255,255,255,0) 38%, rgba(255,255,255,0.14) 47%, rgba(255,255,255,0.26) 50%, rgba(255,255,255,0.14) 53%, rgba(255,255,255,0) 62%);
       transform: translateX(-60%); animation: sweep 9s ease-in-out infinite;
-    }
-    .shine::after {
-      content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-      background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.12) 100%);
     }
     @keyframes sweep { 0% { transform: translateX(-60%); } 55%, 100% { transform: translateX(60%); } }
 
-    /* Polished metal headline */
-    .metal {
-      background: linear-gradient(100deg, #d9d9d5 0%, #ffffff 30%, #bdbdb9 50%, #ffffff 70%, #e4e4e0 100%);
+    .logo { display: flex; flex-direction: column; align-items: center; gap: 22px; color: #f4f4f2; }
+    .mark { width: 96px; height: 96px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)) drop-shadow(0 3px 8px rgba(0,0,0,0.18)); }
+    .word {
+      font-family: "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+      font-weight: 600; font-size: 15px; letter-spacing: 0.42em;
+      margin-right: -0.42em; /* balance trailing letter-spacing */
+      background: linear-gradient(100deg, #ececea 0%, #ffffff 30%, #dcdcd8 50%, #ffffff 70%, #ececea 100%);
       background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
       animation: metal 9s ease-in-out infinite;
-      filter: drop-shadow(0 2px 10px rgba(0,0,0,0.12));
     }
     @keyframes metal { 0% { background-position: 100% 0; } 55%, 100% { background-position: 0 0; } }
-    .gleam { opacity: 0.12 !important; }
 
-    /* Button sheen on hover */
-    .btn { position: relative; overflow: hidden; }
-    .btn::after {
-      content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
-      background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,0.55), rgba(255,255,255,0));
-      transform: skewX(-20deg); transition: left .6s ease;
-    }
-    .btn:hover::after { left: 120%; }
-    .brand svg { filter: drop-shadow(0 0 6px rgba(255,255,255,0.25)); }
-    nav .btn { white-space: nowrap; }
-
-    /* Reveal on scroll */
-    .reveal { opacity: 0; transform: translateY(36px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
-    .reveal.in { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) {
-      .reveal { opacity: 1; transform: none; transition: none; }
-      .scroll-hint::after, .shine::before, .metal { animation: none; }
-      html { scroll-behavior: auto; }
-    }
-
-    @media (max-width: 860px) {
-      nav a:not(.btn) { display: none; }
-      nav .btn { padding: 10px 14px; font-size: 11px; }
-      .brand span { font-size: 11px; letter-spacing: 0.3em; }
-      section { padding: 96px 0; }
-      .split, .contact .grid { grid-template-columns: 1fr; gap: 48px; }
-      .steps { grid-template-columns: 1fr; }
-      .step { padding-right: 0; padding-bottom: 10px; }
-      .stats { grid-template-columns: 1fr 1fr; }
-      .stat:nth-child(2) { border-right: 0; }
-      .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-      .svc { grid-template-columns: 48px 1fr; }
-      .svc .ic { width: 48px; height: 48px; }
-      .svc .more { grid-column: 2; }
-      .fgrid { grid-template-columns: 1fr 1fr; }
-      .hero .giant { width: 90vw; right: -30vw; }
+      body::before, .word { animation: none; }
     }
   </style>
 </head>
 <body>
-
-  <header class="top" id="top">
-    <div class="wrap">
-      <a class="brand" href="#" aria-label="Transactofix home">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#f4f4f2" stroke-width="6"/>
-          <path d="M30 34h60" stroke="#f4f4f2" stroke-width="11" stroke-linecap="square"/>
-          <path d="M36 63l18 20 30-38" fill="none" stroke="#f4f4f2" stroke-width="11" stroke-linecap="square"/>
-        </svg>
-        <span>TRANSACTOFIX</span>
-      </a>
-      <nav>
-        <a href="#matcher">Matcher</a>
-        <a href="#services">Services</a>
-        <a href="#contact">Contact</a>
-        <a class="btn" href="app.html">Open matcher</a>
-      </nav>
-    </div>
-  </header>
-
-  <!-- Hero -->
-  <section class="hero tex-grey shine">
-    <svg class="giant gleam" viewBox="0 0 120 120" aria-hidden="true">
-      <rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#ffffff" stroke-width="3"/>
-      <path d="M30 34h60" stroke="#ffffff" stroke-width="9" stroke-linecap="square"/>
-      <path d="M36 63l18 20 30-38" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="square"/>
+  <div class="logo" role="img" aria-label="Transactofix">
+    <svg class="mark" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#f4f4f2" stroke-width="4"/>
+      <path d="M30 34h60" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square"/>
+      <path d="M36 63l18 20 30-38" fill="none" stroke="#f4f4f2" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"/>
     </svg>
-    <div class="wrap">
-      <p class="eyebrow reveal">Reconciliation &middot; ERPNext &middot; Finance clean-up</p>
-      <h1 class="reveal metal">Books that balance.</h1>
-      <p class="sub reveal">Transactofix finds the transactions that don't match, fixes the ledgers behind them and sets up ERP that keeps them right, for growing businesses in Ireland and the UK.</p>
-      <div class="actions reveal">
-        <a class="btn" href="app.html">Try the free matcher</a>
-        <a class="btn line" href="#contact">Talk to us</a>
-      </div>
-    </div>
-    <div class="scroll-hint">Scroll</div>
-  </section>
-
-  <!-- Statement -->
-  <section class="statement tex-dark">
-    <div class="wrap">
-      <h2 class="reveal">Every transaction accounted for. <em>Every difference explained.</em></h2>
-    </div>
-  </section>
-
-  <!-- Matcher feature -->
-  <section id="matcher" class="tex-dark" style="padding-top:40px">
-    <div class="wrap split">
-      <div class="reveal">
-        <p class="eyebrow">Free tool</p>
-        <h2>The matcher.</h2>
-        <p class="lead">Drop in a bank statement and a ledger export. Transactofix pairs them by amount and date, then shows you exactly what's missing, what's extra and what's been posted twice.</p>
-        <ul class="checks">
-          <li>Works with any bank or ERP that exports CSV</li>
-          <li>Handles debit/credit columns, Irish and UK date formats</li>
-          <li>Download the results as a spreadsheet</li>
-          <li>Runs in your browser: your files are never uploaded</li>
-        </ul>
-        <a class="btn" href="app.html">Open the matcher</a>
-      </div>
-      <div class="panel reveal" aria-hidden="true">
-        <div class="bar"><i></i><i></i><i></i></div>
-        <div class="tiles">
-          <div class="tile"><b>412</b><span>Matched</span></div>
-          <div class="tile alert"><b>7</b><span>Only in bank</span></div>
-          <div class="tile alert"><b>3</b><span>Only in ledger</span></div>
-          <div class="tile"><b>2</b><span>Duplicates</span></div>
-        </div>
-        <div class="rows">
-          <div><span>Bank charges, 14 Nov</span><b>&minus;12.50</b></div>
-          <div><span>Receipt INV-1045, 12 Nov</span><b>860.50</b></div>
-          <div><span>Broadband DD, 07 Nov (&times;2)</span><b>&minus;65.00</b></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Services -->
-  <section id="services" class="services tex-dark" style="padding-top:60px">
-    <div class="wrap">
-      <h2 class="reveal">What we fix.</h2>
-      <a class="svc reveal" href="#contact">
-        <div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#f4f4f2" stroke-width="2"><path d="M4 9h22M4 21h22"/><path d="M9 4l-5 5 5 5M21 16l5 5-5 5"/></svg></div>
-        <div><h3>Bank &amp; ledger reconciliation</h3><p>Clear the backlog of unreconciled items and find the duplicates and missing entries behind every difference.</p></div>
-        <span class="more">Know more &rarr;</span>
-      </a>
-      <a class="svc reveal" href="#contact">
-        <div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#f4f4f2" stroke-width="2"><rect x="4" y="4" width="9" height="9"/><rect x="17" y="4" width="9" height="9"/><rect x="4" y="17" width="9" height="9"/><rect x="17" y="17" width="9" height="9"/></svg></div>
-        <div><h3>ERPNext implementation</h3><p>Set-up, chart of accounts, data migration, multi-company and multi-currency configuration, and training for finance teams.</p></div>
-        <span class="more">Know more &rarr;</span>
-      </a>
-      <a class="svc reveal" href="#contact">
-        <div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#f4f4f2" stroke-width="2"><path d="M4 26V14M12 26V8M20 26V16M28 26V4"/></svg></div>
-        <div><h3>Finance process clean-up</h3><p>Month-end close checklists, payables and receivables controls, and fixes for the errors that keep coming back.</p></div>
-        <span class="more">Know more &rarr;</span>
-      </a>
-      <a class="svc reveal" href="#contact">
-        <div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#f4f4f2" stroke-width="2"><path d="M7 3h12l5 5v19H7z"/><path d="M11 17l3 3 6-7"/></svg></div>
-        <div><h3>Compliance support</h3><p>VAT-ready records, audit preparation and clear documentation, so your accountant and auditor get what they need first time.</p></div>
-        <span class="more">Know more &rarr;</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- Contact (grey texture) -->
-  <section id="contact" class="contact tex-grey shine">
-    <div class="wrap grid">
-      <div class="reveal">
-        <h2>Let's<br>balance<br>your books.</h2>
-        <p class="lead" style="color:rgba(255,255,255,0.88)">Tell us about your business and what's not adding up. We reply within two working days.</p>
-      </div>
-      <form id="contactForm" class="reveal">
-        <div><label for="name">Name</label><input id="name" required></div>
-        <div><label for="company">Company</label><input id="company"></div>
-        <div>
-          <label for="topic">I need help with</label>
-          <select id="topic">
-            <option>Bank and ledger reconciliation</option>
-            <option>ERPNext implementation</option>
-            <option>Finance process clean-up</option>
-            <option>Compliance support</option>
-            <option>Something else</option>
-          </select>
-        </div>
-        <div><label for="message">Message</label><textarea id="message" required></textarea></div>
-        <div><button class="btn" type="submit">Send message</button></div>
-      </form>
-    </div>
-  </section>
-
-  <footer class="tex-dark">
-    <div class="wrap">
-      <div class="fgrid">
-        <div>
-          <a class="brand" href="#top" aria-label="Transactofix home" style="margin-bottom:18px">
-            <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="5" y="5" width="110" height="110" rx="24" fill="none" stroke="#f4f4f2" stroke-width="6"/><path d="M30 34h60" stroke="#f4f4f2" stroke-width="11" stroke-linecap="square"/><path d="M36 63l18 20 30-38" fill="none" stroke="#f4f4f2" stroke-width="11" stroke-linecap="square"/></svg>
-            <span>TRANSACTOFIX</span>
-          </a>
-          <p>Reconciliation, ERPNext and finance clean-up for growing businesses in Ireland and the UK.</p>
-        </div>
-        <div><h4>Product</h4><a href="app.html">Transaction matcher</a><a href="#matcher">How it works</a></div>
-        <div><h4>Services</h4><a href="#services">Reconciliation</a><a href="#services">ERPNext</a><a href="#services">Clean-up</a><a href="#services">Compliance</a></div>
-        <div><h4>Company</h4><a href="#contact">Contact</a><a href="#contact">Work with us</a></div>
-      </div>
-      <div class="legal"><span>&copy; <span id="year"></span> Transactofix. Ireland.</span><span>Your files never leave your browser.</span></div>
-    </div>
-  </footer>
-
-  <script>
-    var CONTACT_EMAIL = "ilyasdiggi9174@gmail.com";
-    document.getElementById("year").textContent = new Date().getFullYear();
-
-    // Solid header after scrolling past the top
-    var header = document.getElementById("top");
-    function onScroll() { header.classList.toggle("solid", window.scrollY > 40); }
-    window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
-
-    // Reveal sections as they enter the viewport
-    var items = document.querySelectorAll(".reveal");
-    if ("IntersectionObserver" in window) {
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-      }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
-      items.forEach(function (el) { io.observe(el); });
-    } else { items.forEach(function (el) { el.classList.add("in"); }); }
-
-    // Contact form opens the visitor's email app
-    document.getElementById("contactForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var v = function (id) { return document.getElementById(id).value.trim(); };
-      var subject = "Transactofix enquiry: " + v("topic");
-      var body = "Name: " + v("name") + "\nCompany: " + v("company") + "\nTopic: " + v("topic") + "\n\n" + v("message");
-      window.location.href = "mailto:" + CONTACT_EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-    });
-  </script>
+    <div class="word">TRANSACTOFIX</div>
+  </div>
 </body>
 </html>
