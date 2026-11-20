@@ -1,0 +1,47 @@
+name: Rate check
+
+# Reads Scopex and Aspora rates three times a day and updates rates/partners.json
+# and rates/history.csv. Times are UTC (07:38, 12:38, 18:38). GitHub may start
+# scheduled runs a few minutes late. Use "Run workflow" to run it by hand.
+on:
+  schedule:
+    - cron: "38 7,12,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rate-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install headless browser
+        run: |
+          pip install playwright==1.48.0
+          python -m playwright install --with-deps chromium
+
+      - name: Read rates
+        run: python scripts/check_rates.py
+
+      - name: Save to the record
+        run: |
+          if git diff --quiet -- rates; then
+            echo "No changes to save."
+            exit 0
+          fi
+          git config user.name "transactofix-rate-check"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rates/partners.json rates/history.csv
+          git commit -m "Rate check $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
