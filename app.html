@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transaction Matcher | Transactofix</title>
+  <meta name="description" content="Free bank-to-ledger transaction matcher. Upload two CSV files and see matched, missing and duplicate transactions. Runs entirely in your browser.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="index.html">Transacto<span>fix</span></a>
+      <nav>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#contact">Contact</a>
+        <a class="btn" href="index.html#contact">Get help</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="tool-head">
+    <div class="wrap">
+      <h1>Transaction matcher</h1>
+      <p>Compare a bank statement with your ledger and find what doesn't match.</p>
+    </div>
+  </div>
+
+  <section style="padding-top:32px">
+    <div class="wrap">
+      <div class="privacy">Your files never leave your computer. Everything is processed inside this browser tab and nothing is uploaded or stored.</div>
+
+      <div class="uploads">
+        <div class="panel">
+          <h3>File A: bank statement (CSV)</h3>
+          <input type="file" id="fileA" accept=".csv,text/csv">
+          <div id="colsA"></div>
+        </div>
+        <div class="panel">
+          <h3>File B: ledger / cash book (CSV)</h3>
+          <input type="file" id="fileB" accept=".csv,text/csv">
+          <div id="colsB"></div>
+        </div>
+      </div>
+
+      <div class="panel settings">
+        <div>
+          <label for="dateFmt">Date format</label>
+          <select id="dateFmt">
+            <option value="DMY">Day/Month/Year (IE, UK)</option>
+            <option value="MDY">Month/Day/Year (US)</option>
+          </select>
+        </div>
+        <div>
+          <label for="dayTol">Date tolerance (days)</label>
+          <input id="dayTol" type="number" min="0" max="60" value="3">
+        </div>
+        <div>
+          <label for="amtTol">Amount tolerance</label>
+          <input id="amtTol" type="number" min="0" step="0.01" value="0.00">
+        </div>
+        <div>
+          <label for="flipB">Signs in file B</label>
+          <select id="flipB">
+            <option value="same">Same as bank (money in = +)</option>
+            <option value="flip">Reversed (money in = &minus;)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" id="runBtn">Match transactions</button>
+        <button class="btn light" id="sampleBtn">Load sample data</button>
+        <button class="btn light" id="exportBtn" disabled>Download results (CSV)</button>
+      </div>
+      <div class="error" id="err"></div>
+
+      <div id="results" hidden>
+        <div class="stats" id="stats"></div>
+        <div class="tabs" id="tabs"></div>
+        <div class="table-wrap" id="tableWrap"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="wrap">&copy; <span id="year"></span> Transactofix &middot; <a href="index.html">Home</a></div>
+  </footer>
+
+  <script>
+  (function () {
+    "use strict";
+    var $ = function (id) { return document.getElementById(id); };
+    $("year").textContent = new Date().getFullYear();
+
+    var data = { A: null, B: null };   // { headers: [], rows: [[]] }
+    var lastResult = null;
+    var currentTab = "matched";
+
+    // ---------- CSV parsing ----------
+    function parseCSV(text) {
+      text = text.replace(/^﻿/, "");
+      var delim = detectDelimiter(text);
+      var rows = [], row = [], field = "", q = false;
+      for (var i = 0; i < text.length; i++) {
+        var c = text[i];
+        if (q) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; } else { q = false; }
+          } else { field += c; }
+        } else if (c === '"') { q = true; }
+        else if (c === delim) { row.push(field); field = ""; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(field); field = "";
+          if (row.some(function (x) { return x.trim() !== ""; })) rows.push(row);
+          row = [];
+        } else { field += c; }
+      }
+      row.push(field);
+      if (row.some(function (x) { return x.trim() !== ""; })) rows.push(row);
+      if (rows.length < 2) throw new Error("The file needs a header row and at least one transaction.");
+      var headers = rows.shift().map(function (h) { return h.trim(); });
+      return { headers: headers, rows: rows };
+    }
+    function detectDelimiter(text) {
+      var first = text.split(/\r?\n/)[0] || "";
+      var counts = { ",": 0, ";": 0, "\t": 0 };
+      for (var k in counts) counts[k] = first.split(k).length - 1;
+      return Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+    }
+
+    // ---------- Column detection ----------
+    function guess(headers, words) {
+      for (var w = 0; w < words.length; w++)
+        for (var i = 0; i < headers.length; i++)
+          if (headers[i].toLowerCase().indexOf(words[w]) !== -1) return i;
+      return -1;
+    }
+    function renderColumnPickers(key) {
+      var d = data[key], h = d.headers;
+      var g = {
+        date: guess(h, ["posting date", "transaction date", "date"]),
+        desc: guess(h, ["description", "narrative", "details", "particulars", "memo", "reference", "payee", "remarks"]),
+        amount: guess(h, ["amount", "value"]),
+        debit: guess(h, ["debit", "paid out", "money out", "withdrawal"]),
+        credit: guess(h, ["credit", "paid in", "money in", "deposit"])
+      };
+      var mode = g.amount !== -1 ? "single" : (g.debit !== -1 || g.credit !== -1 ? "split" : "single");
+      function sel(id, label, idx, allowNone) {
+        var opts = (allowNone ? '<option value="-1">(none)</option>' : "") +
+          h.map(function (x, i) { return '<option value="' + i + '"' + (i === idx ? " selected" : "") + ">" + esc(x || "Column " + (i + 1)) + "</option>"; }).join("");
+        return '<div style="margin-top:10px"><label for="' + id + '">' + label + '</label><select id="' + id + '">' + opts + "</select></div>";
+      }
+      var html = '<p class="hint">' + d.rows.length + " rows loaded. Check the columns below.</p>" +
+        sel(key + "_date", "Date column", g.date === -1 ? 0 : g.date) +
+        sel(key + "_desc", "Description column", g.desc, true) +
+        '<div style="margin-top:10px"><label for="' + key + '_mode">Amounts are in</label><select id="' + key + '_mode">' +
+        '<option value="single"' + (mode === "single" ? " selected" : "") + ">One amount column (+/&minus;)</option>" +
+        '<option value="split"' + (mode === "split" ? " selected" : "") + ">Separate debit and credit columns</option></select></div>" +
+        '<div id="' + key + '_single"' + (mode === "single" ? "" : " hidden") + ">" + sel(key + "_amount", "Amount column", g.amount === -1 ? h.length - 1 : g.amount) + "</div>" +
+        '<div id="' + key + '_split"' + (mode === "split" ? "" : " hidden") + ">" +
+        sel(key + "_in", key === "A" ? "Money in (credit) column" : "Money in (debit) column", key === "A" ? g.credit : g.debit, true) +
+        sel(key + "_out", key === "A" ? "Money out (debit) column" : "Money out (credit) column", key === "A" ? g.debit : g.credit, true) + "</div>";
+      $("cols" + key).innerHTML = html;
+      $(key + "_mode").addEventListener("change", function () {
+        var s = this.value === "single";
+        $(key + "_single").hidden = !s;
+        $(key + "_split").hidden = s;
+      });
+    }
+
+    // ---------- Value parsing ----------
+    function parseAmount(s) {
+      if (s == null) return NaN;
+      s = String(s).trim();
+      if (s === "") return 0;
+      var neg = /^\(.*\)$/.test(s) || /-$/.test(s) || /\bDR\b/i.test(s);
+      s = s.replace(/[()€£$\s]|CR|DR/gi, "");
+      if (/,\d{2}$/.test(s) && s.indexOf(".") === -1) s = s.replace(/\./g, "").replace(",", ".");
+      else s = s.replace(/,/g, "");
+      s = s.replace(/-$/, "");
+      var n = parseFloat(s);
+      if (isNaN(n)) return NaN;
+      return neg && n > 0 ? -n : n;
+    }
+    var MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+    function parseDate(s, fmt) {
+      s = String(s || "").trim().split(" ")[0].split("T")[0];
+      var m;
+      if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/))) return mk(+m[1], +m[2] - 1, +m[3]);
+      if ((m = s.match(/^(\d{1,2})[-\/. ]([A-Za-z]{3})[A-Za-z]*[-\/. ](\d{2,4})$/))) return mk(yr(m[3]), MONTHS[m[2].toLowerCase()], +m[1]);
+      if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/))) {
+        return fmt === "MDY" ? mk(yr(m[3]), +m[1] - 1, +m[2]) : mk(yr(m[3]), +m[2] - 1, +m[1]);
+      }
+      var t = Date.parse(s);
+      return isNaN(t) ? null : new Date(t);
+    }
+    function yr(y) { y = +y; return y < 100 ? 2000 + y : y; }
+    function mk(y, mo, d) {
+      if (mo == null || isNaN(mo)) return null;
+      var dt = new Date(Date.UTC(y, mo, d));
+      return dt.getUTCMonth() === mo ? dt : null;
+    }
+    function fmtDate(d) { return d ? d.toISOString().slice(0, 10) : ""; }
+    function fmtAmt(n) { return n.toLocaleString("en-IE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+    function readTransactions(key, flip) {
+      var d = data[key], fmt = $("dateFmt").value;
+      var di = +$(key + "_date").value, de = +$(key + "_desc").value, mode = $(key + "_mode").value;
+      var out = [], bad = 0;
+      d.rows.forEach(function (r, i) {
+        var date = parseDate(r[di], fmt), amt;
+        if (mode === "single") amt = parseAmount(r[+$(key + "_amount").value]);
+        else {
+          var ii = +$(key + "_in").value, oi = +$(key + "_out").value;
+          var a = ii >= 0 ? Math.abs(parseAmount(r[ii]) || 0) : 0;
+          var b = oi >= 0 ? Math.abs(parseAmount(r[oi]) || 0) : 0;
+          amt = a - b;
+        }
+        if (!date || isNaN(amt)) { bad++; return; }
+        if (flip) amt = -amt;
+        out.push({ id: key + (i + 2), line: i + 2, date: date, desc: de >= 0 ? (r[de] || "").trim() : "", amount: Math.round(amt * 100) / 100, matched: null });
+      });
+      return { list: out, bad: bad };
+    }
+
+    // ---------- Matching ----------
+    function words(s) { return s.toLowerCase().split(/[^a-z0-9]+/).filter(function (w) { return w.length > 2; }); }
+    function similarity(a, b) {
+      var A = words(a), B = words(b);
+      if (!A.length || !B.length) return 0;
+      var hit = A.filter(function (w) { return B.indexOf(w) !== -1; }).length;
+      return hit / Math.max(A.length, B.length);
+    }
+    var DAY = 86400000;
+    function match(A, B, dayTol, amtTol) {
+      var pairs = [];
+      // Pass 1: exact amount and date. Pass 2: within tolerances, closest first.
+      [0, 1].forEach(function (pass) {
+        A.forEach(function (a) {
+          if (a.matched) return;
+          var best = null, bestScore = Infinity;
+          B.forEach(function (b) {
+            if (b.matched) return;
+            var amtDiff = Math.abs(a.amount - b.amount);
+            var dayDiff = Math.round(Math.abs(a.date - b.date) / DAY);
+            if (pass === 0 ? (amtDiff > 0.004 || dayDiff !== 0) : (amtDiff > amtTol + 0.004 || dayDiff > dayTol)) return;
+            var score = dayDiff * 10 + amtDiff * 100 - similarity(a.desc, b.desc) * 5;
+            if (score < bestScore) { bestScore = score; best = b; }
+          });
+          if (best) {
+            a.matched = best; best.matched = a;
+            pairs.push({ a: a, b: best, dayDiff: Math.round(Math.abs(a.date - best.date) / DAY), amtDiff: Math.round((a.amount - best.amount) * 100) / 100 });
+          }
+        });
+      });
+      return pairs;
+    }
+    function duplicates(list, label) {
+      var seen = {}, dups = [];
+      list.forEach(function (t) {
+        var k = fmtDate(t.date) + "|" + t.amount.toFixed(2) + "|" + t.desc.toLowerCase();
+        (seen[k] = seen[k] || []).push(t);
+      });
+      Object.keys(seen).forEach(function (k) {
+        if (seen[k].length > 1) seen[k].forEach(function (t) { dups.push({ file: label, t: t, count: seen[k].length }); });
+      });
+      return dups;
+    }
+
+    function run() {
+      $("err").textContent = "";
+      if (!data.A || !data.B) { $("err").textContent = "Please load both files first (or click Load sample data)."; return; }
+      var ra = readTransactions("A", false), rb = readTransactions("B", $("flipB").value === "flip");
+      if (!ra.list.length || !rb.list.length) { $("err").textContent = "No readable transactions found. Check the date and amount columns and the date format."; return; }
+      var dayTol = Math.max(0, +$("dayTol").value || 0), amtTol = Math.max(0, +$("amtTol").value || 0);
+      var pairs = match(ra.list, rb.list, dayTol, amtTol);
+      var onlyA = ra.list.filter(function (t) { return !t.matched; });
+      var onlyB = rb.list.filter(function (t) { return !t.matched; });
+      var dups = duplicates(ra.list, "Bank").concat(duplicates(rb.list, "Ledger"));
+      var sum = function (l) { return l.reduce(function (s, t) { return s + t.amount; }, 0); };
+      lastResult = { pairs: pairs, onlyA: onlyA, onlyB: onlyB, dups: dups, badA: ra.bad, badB: rb.bad,
+        totalA: sum(ra.list), totalB: sum(rb.list), countA: ra.list.length, countB: rb.list.length };
+      renderResults();
+      $("exportBtn").disabled = false;
+    }
+
+    // ---------- Output ----------
+    function renderResults() {
+      var r = lastResult;
+      var diff = r.totalA - r.totalB;
+      $("stats").innerHTML =
+        stat(r.pairs.length, "Matched pairs", "") +
+        stat(r.onlyA.length, "Only in bank", r.onlyA.length ? "bad" : "") +
+        stat(r.onlyB.length, "Only in ledger", r.onlyB.length ? "bad" : "") +
+        stat(r.dups.length, "Possible duplicate lines", r.dups.length ? "warn" : "") +
+        stat(fmtAmt(diff), "Bank total minus ledger total", Math.abs(diff) > 0.004 ? "warn" : "");
+      var tabs = [["matched", "Matched (" + r.pairs.length + ")"], ["onlyA", "Only in bank (" + r.onlyA.length + ")"],
+        ["onlyB", "Only in ledger (" + r.onlyB.length + ")"], ["dups", "Possible duplicates (" + r.dups.length + ")"]];
+      $("tabs").innerHTML = tabs.map(function (t) { return '<button data-tab="' + t[0] + '"' + (t[0] === currentTab ? ' class="on"' : "") + ">" + t[1] + "</button>"; }).join("");
+      Array.prototype.forEach.call($("tabs").querySelectorAll("button"), function (b) {
+        b.addEventListener("click", function () { currentTab = b.getAttribute("data-tab"); renderResults(); });
+      });
+      $("tableWrap").innerHTML = table(currentTab);
+      var skipped = r.badA + r.badB;
+      if (skipped) $("err").textContent = skipped + " row(s) were skipped because the date or amount couldn't be read (bank: " + r.badA + ", ledger: " + r.badB + ").";
+      $("results").hidden = false;
+    }
+    function stat(n, l, cls) { return '<div class="stat ' + cls + '"><div class="n">' + n + '</div><div class="l">' + l + "</div></div>"; }
+    function table(tab) {
+      var r = lastResult, head, rows;
+      if (tab === "matched") {
+        head = ["Bank date", "Bank description", "Bank amount", "Ledger date", "Ledger description", "Ledger amount", "Days apart"];
+        rows = r.pairs.map(function (p) { return [fmtDate(p.a.date), p.a.desc, n(p.a.amount), fmtDate(p.b.date), p.b.desc, n(p.b.amount), p.dayDiff]; });
+      } else if (tab === "onlyA" || tab === "onlyB") {
+        head = ["Row", "Date", "Description", "Amount"];
+        rows = r[tab].map(function (t) { return [t.line, fmtDate(t.date), t.desc, n(t.amount)]; });
+      } else {
+        head = ["File", "Row", "Date", "Description", "Amount", "Times repeated"];
+        rows = r.dups.map(function (d) { return [d.file, d.t.line, fmtDate(d.t.date), d.t.desc, n(d.t.amount), d.count]; });
+      }
+      if (!rows.length) return '<div class="empty">Nothing here.</div>';
+      return "<table><thead><tr>" + head.map(function (h) { return "<th>" + h + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        rows.map(function (row) {
+          return "<tr>" + row.map(function (c) { return c && c.num != null ? '<td class="num">' + fmtAmt(c.num) + "</td>" : "<td>" + esc(c) + "</td>"; }).join("") + "</tr>";
+        }).join("") + "</tbody></table>";
+    }
+    function n(x) { return { num: x }; }
+
+    function exportCSV() {
+      var r = lastResult, lines = [["Status", "Bank row", "Bank date", "Bank description", "Bank amount", "Ledger row", "Ledger date", "Ledger description", "Ledger amount", "Days apart"]];
+      r.pairs.forEach(function (p) { lines.push(["Matched", p.a.line, fmtDate(p.a.date), p.a.desc, p.a.amount.toFixed(2), p.b.line, fmtDate(p.b.date), p.b.desc, p.b.amount.toFixed(2), p.dayDiff]); });
+      r.onlyA.forEach(function (t) { lines.push(["Only in bank", t.line, fmtDate(t.date), t.desc, t.amount.toFixed(2), "", "", "", "", ""]); });
+      r.onlyB.forEach(function (t) { lines.push(["Only in ledger", "", "", "", "", t.line, fmtDate(t.date), t.desc, t.amount.toFixed(2), ""]); });
+      r.dups.forEach(function (d) {
+        var isBank = d.file === "Bank", t = d.t;
+        lines.push(["Possible duplicate (" + d.file + ")", isBank ? t.line : "", isBank ? fmtDate(t.date) : "", isBank ? t.desc : "", isBank ? t.amount.toFixed(2) : "",
+          isBank ? "" : t.line, isBank ? "" : fmtDate(t.date), isBank ? "" : t.desc, isBank ? "" : t.amount.toFixed(2), ""]);
+      });
+      var csv = lines.map(function (l) { return l.map(function (c) { c = String(c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\r\n");
+      var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "transactofix-results.csv";
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    // ---------- Wiring ----------
+    function loadFile(key, file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        try { data[key] = parseCSV(reader.result); renderColumnPickers(key); $("err").textContent = ""; }
+        catch (e) { data[key] = null; $("cols" + key).innerHTML = ""; $("err").textContent = (key === "A" ? "Bank file: " : "Ledger file: ") + e.message; }
+      };
+      reader.readAsText(file);
+    }
+    $("fileA").addEventListener("change", function () { if (this.files[0]) loadFile("A", this.files[0]); });
+    $("fileB").addEventListener("change", function () { if (this.files[0]) loadFile("B", this.files[0]); });
+    $("runBtn").addEventListener("click", run);
+    $("exportBtn").addEventListener("click", exportCSV);
+    $("sampleBtn").addEventListener("click", function () {
+      var bank = "Date,Description,Debit,Credit\n" +
+        "01/11/2026,Opening transfer from savings,,5000.00\n" +
+        "03/11/2026,ESB Networks DD,142.60,\n" +
+        "04/11/2026,Card payment Office Supplies Ltd,89.99,\n" +
+        "05/11/2026,Customer receipt INV-1042 Murphy Ltd,,1230.00\n" +
+        "07/11/2026,Eir broadband DD,65.00,\n" +
+        "07/11/2026,Eir broadband DD,65.00,\n" +
+        "10/11/2026,Revenue VAT payment,2310.45,\n" +
+        "12/11/2026,Customer receipt INV-1045 Byrne & Co,,860.50\n" +
+        "14/11/2026,Bank charges,12.50,\n" +
+        "18/11/2026,Salary run November,4200.00,\n";
+      var ledger = "Posting Date,Account,Remarks,Debit,Credit\n" +
+        "01/11/2026,Bank - AIB,Transfer from savings account,5000.00,\n" +
+        "03/11/2026,Bank - AIB,Electricity ESB,,142.60\n" +
+        "03/11/2026,Bank - AIB,Office Supplies Ltd stationery,,89.99\n" +
+        "06/11/2026,Bank - AIB,Receipt Murphy Ltd INV-1042,1230.00,\n" +
+        "07/11/2026,Bank - AIB,Eir broadband,,65.00\n" +
+        "10/11/2026,Bank - AIB,VAT return Sep-Oct,,2310.45\n" +
+        "12/11/2026,Bank - AIB,Receipt Byrne & Co INV-1045,860.00,\n" +
+        "18/11/2026,Bank - AIB,November payroll,,4200.00\n" +
+        "19/11/2026,Bank - AIB,Receipt Kelly Ltd INV-1047,540.00,\n";
+      data.A = parseCSV(bank); renderColumnPickers("A");
+      data.B = parseCSV(ledger); renderColumnPickers("B");
+      $("dateFmt").value = "DMY";
+      run();
+    });
+  })();
+  </script>
+</body>
+</html>
