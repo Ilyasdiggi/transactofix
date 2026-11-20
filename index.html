@@ -41,29 +41,49 @@
 
     /* Small rate box, top right */
     .fx {
-      position: fixed; top: 24px; right: 24px; z-index: 2; width: 330px; padding: 16px 18px;
+      position: fixed; top: 24px; right: 24px; z-index: 2; width: 360px; padding: 16px 18px;
       background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05));
       border: 1px solid rgba(255,255,255,0.32); border-radius: 14px;
       box-shadow: 0 14px 34px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.35);
       backdrop-filter: blur(6px);
     }
     .fx h1 { margin: 0 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; white-space: nowrap; text-transform: uppercase; color: rgba(255,255,255,0.92); }
-    .pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+    .pair { display: grid; grid-template-columns: 1.1fr 1fr auto 1fr; gap: 8px; align-items: center; }
     .pair span { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
-    select {
-      width: 100%; padding: 9px 26px 9px 10px; font-family: inherit; font-weight: 600; font-size: 14px; color: #fff;
-      background: rgba(0,0,0,0.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23fff' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 9px center;
-      border: 1px solid rgba(255,255,255,0.3); border-radius: 9px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+    select, .amt {
+      width: 100%; padding: 9px 10px; font-family: inherit; font-weight: 600; font-size: 14px; color: #fff;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 9px; outline: none; background-color: rgba(0,0,0,0.14);
     }
-    select:focus { border-color: #fff; }
+    select {
+      padding-right: 24px; appearance: none; -webkit-appearance: none; cursor: pointer;
+      background: rgba(0,0,0,0.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23fff' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 8px center;
+    }
+    .amt::-webkit-outer-spin-button, .amt::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .amt { -moz-appearance: textfield; }
+    select:focus, .amt:focus { border-color: #fff; }
     select option { color: #111; }
-    .rate { margin-top: 12px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
-    .meta { margin-top: 4px; font-size: 10px; color: rgba(255,255,255,0.72); }
-    .meta a { color: rgba(255,255,255,0.85); }
-    .err { color: #ffe1d6; font-size: 13px; font-weight: 600; }
+
+    .google { margin-top: 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; color: rgba(255,255,255,0.85); }
+    .google b { font-size: 16px; color: #fff; font-weight: 700; white-space: nowrap; }
+    .best { margin-top: 10px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.78); }
+    ol.list { list-style: none; margin: 6px 0 0; padding: 0; }
+    ol.list li {
+      display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center;
+      padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.18); font-size: 12px; color: rgba(255,255,255,0.85);
+    }
+    ol.list li .n { font-weight: 700; color: rgba(255,255,255,0.7); }
+    ol.list li .who b { display: block; font-size: 14px; color: #fff; font-weight: 700; }
+    ol.list li .get { text-align: right; }
+    ol.list li .get b { display: block; font-size: 14px; color: #fff; font-weight: 700; white-space: nowrap; }
+    ol.list li:first-child .who b::after { content: "BEST"; margin-left: 6px; padding: 1px 5px; font-size: 9px; letter-spacing: 0.12em; border: 1px solid rgba(255,255,255,0.7); border-radius: 4px; vertical-align: 2px; }
+    .meta { margin-top: 8px; font-size: 10px; line-height: 1.5; color: rgba(255,255,255,0.72); }
+    .meta a { color: rgba(255,255,255,0.88); }
+    .err { color: #ffe1d6; font-size: 12px; font-weight: 600; padding: 8px 0; }
 
     @media (max-width: 560px) {
-      .fx { top: 14px; right: 14px; left: 14px; width: auto; }
+      body { overflow: auto; }
+      .fx { position: relative; top: auto; right: auto; margin: 14px; width: auto; }
+      .logo { position: static; padding: 60px 0 80px; }
     }
     @media (prefers-reduced-motion: reduce) {
       body::before, .shine-text { animation: none; }
@@ -80,33 +100,48 @@
     <div class="word shine-text">TRANSACTOFIX</div>
   </div>
 
-  <aside class="fx" aria-label="Exchange rate">
+  <aside class="fx" aria-label="Exchange rate comparison">
     <h1>Know your best exchange rate</h1>
     <div class="pair">
+      <input class="amt" id="amount" type="number" min="1" step="any" value="1000" inputmode="decimal" aria-label="Amount to send">
       <select id="from" aria-label="Select currency"></select>
       <span>to</span>
       <select id="to" aria-label="Currency"></select>
     </div>
-    <div class="rate" id="rate" aria-live="polite">Loading&hellip;</div>
-    <div class="meta"><span id="meta"></span> <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a></div>
+    <div class="google"><span>Google (mid-market) rate</span><b id="mid">&hellip;</b></div>
+    <div class="best">Top 5 apps for you</div>
+    <ol class="list" id="list" aria-live="polite"></ol>
+    <div class="meta" id="meta"></div>
   </aside>
 
   <script>
   (function () {
     "use strict";
     var $ = function (id) { return document.getElementById(id); };
-    var POPULAR = ["EUR", "GBP", "USD", "INR", "AED", "CAD", "AUD", "CHF", "JPY", "CNY", "PLN", "SGD"];
-    var cache = {};            // base currency -> API response
-    function rateFmt(n) { return n >= 100 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toPrecision(4); }
+    var POPULAR = ["EUR", "GBP", "USD", "INR", "AED", "CAD", "AUD", "CHF", "PKR", "PHP", "NGN", "PLN"];
+    var midCache = {}, cmpCache = {}, timer = null, seq = 0;
 
-    function getRates(base) {
-      if (cache[base]) return Promise.resolve(cache[base]);
+    function rateFmt(n) { return n >= 100 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toPrecision(4); }
+    function money(n, code) {
+      try { return new Intl.NumberFormat("en-IE", { style: "currency", currency: code, maximumFractionDigits: 2 }).format(n); }
+      catch (e) { return n.toFixed(2) + " " + code; }
+    }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+    // Daily mid-market rates (fallback and currency list)
+    function getMid(base) {
+      if (midCache[base]) return Promise.resolve(midCache[base]);
       return fetch("https://open.er-api.com/v6/latest/" + encodeURIComponent(base))
         .then(function (r) { return r.json(); })
-        .then(function (j) {
-          if (j.result !== "success") throw new Error("Rates unavailable");
-          cache[base] = j; return j;
-        });
+        .then(function (j) { if (j.result !== "success") throw new Error("x"); midCache[base] = j; return j; });
+    }
+    // Live provider quotes collected by Wise's public comparison service
+    function getQuotes(from, to, amount) {
+      var key = from + to + amount;
+      if (cmpCache[key]) return Promise.resolve(cmpCache[key]);
+      var url = "https://api.wise.com/v4/comparisons/?sourceCurrency=" + from + "&targetCurrency=" + to + "&sendAmount=" + amount;
+      return fetch(url).then(function (r) { if (!r.ok) throw new Error("x"); return r.json(); })
+        .then(function (j) { cmpCache[key] = j; return j; });
     }
 
     function fill(codes) {
@@ -115,33 +150,69 @@
       var html = '<optgroup label="Popular">' + popular.map(opt).join("") + "</optgroup>" +
                  '<optgroup label="All currencies">' + rest.map(opt).join("") + "</optgroup>";
       $("from").innerHTML = html; $("to").innerHTML = html;
-      $("from").value = "EUR"; $("to").value = "GBP";
+      $("from").value = "EUR"; $("to").value = "INR";
     }
     function opt(c) { return '<option value="' + c + '">' + c + "</option>"; }
 
     function update() {
+      var my = ++seq;
       var from = $("from").value, to = $("to").value;
-      getRates(from).then(function (j) {
-        var r = j.rates[to];
-        if (r == null) throw new Error("No rate for " + to);
-        $("rate").textContent = "1 " + from + " = " + rateFmt(r) + " " + to;
-        $("rate").classList.remove("err");
-        var d = new Date(j.time_last_update_unix * 1000);
-        $("meta").textContent = "Mid-market, " + d.toLocaleDateString("en-IE", { day: "numeric", month: "short", timeZone: "UTC" }) + " \u00B7";
+      var amount = Math.round(parseFloat($("amount").value) * 100) / 100;
+      if (!from || !to) return;
+      if (!(amount > 0)) { $("list").innerHTML = '<li class="err">Enter an amount to compare.</li>'; return; }
+      if (from === to) { $("mid").textContent = "1 " + from + " = 1 " + to; $("list").innerHTML = '<li class="err">Pick two different currencies.</li>'; $("meta").textContent = ""; return; }
+      $("list").innerHTML = '<li><span></span><span>Checking apps&hellip;</span><span></span></li>';
+
+      getQuotes(from, to, amount).then(function (j) {
+        if (my !== seq) return;
+        var quotes = [];
+        var mid = null;
+        (j.providers || []).forEach(function (p) {
+          var q = (p.quotes || [])[0];
+          if (!q || !(q.receivedAmount > 0)) return;
+          if (q.isConsideredMidMarketRate || q.markup === 0) mid = mid || q.rate;
+          if (p.type === "bank") return;               // apps and transfer services only
+          quotes.push({ name: p.name, rate: q.rate, fee: q.fee, get: q.receivedAmount });
+        });
+        quotes.sort(function (a, b) { return b.get - a.get; });
+        var top = quotes.slice(0, 5);
+        return (mid ? Promise.resolve(mid) : getMid(from).then(function (m) { return m.rates[to]; })).then(function (m) {
+          if (my !== seq) return;
+          $("mid").textContent = "1 " + from + " = " + rateFmt(m) + " " + to;
+          if (!top.length) { $("list").innerHTML = '<li class="err">No app quotes for this pair yet.</li>'; }
+          else {
+            $("list").innerHTML = top.map(function (p, i) {
+              return '<li><span class="n">' + (i + 1) + '</span>' +
+                '<span class="who"><b>' + esc(p.name) + '</b>Rate ' + rateFmt(p.rate) + ' &middot; Fee ' + money(p.fee, from) + '</span>' +
+                '<span class="get"><b>' + money(p.get, to) + '</b>they receive</span></li>';
+            }).join("");
+          }
+          $("meta").innerHTML = "Ranked by amount received after fees. Quotes collected by " +
+            '<a href="https://wise.com/gb/compare/" target="_blank" rel="noopener">Wise comparison</a>' +
+            "; some may be a few days old. Not every app is covered. Check the final rate in the app before sending. " +
+            '<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>';
+        });
       }).catch(function () {
-        $("rate").textContent = "Rates unavailable, try again shortly.";
-        $("rate").classList.add("err");
-        $("meta").textContent = "";
+        if (my !== seq) return;
+        // Fall back to the daily mid-market rate only
+        getMid(from).then(function (m) {
+          $("mid").textContent = "1 " + from + " = " + rateFmt(m.rates[to]) + " " + to;
+          $("list").innerHTML = '<li class="err">App comparison isn\'t available for this pair right now.</li>';
+          $("meta").innerHTML = '<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>';
+        }).catch(function () {
+          $("mid").textContent = "Unavailable";
+          $("list").innerHTML = '<li class="err">Rates unavailable, try again shortly.</li>';
+        });
       });
     }
+    function later() { clearTimeout(timer); timer = setTimeout(update, 400); }
 
-    getRates("EUR").then(function (j) {
-      fill(Object.keys(j.rates));
-      update();
-    }).catch(update);
+    getMid("EUR").then(function (j) { fill(Object.keys(j.rates)); update(); })
+      .catch(function () { fill(POPULAR); update(); });
 
     $("from").addEventListener("change", update);
     $("to").addEventListener("change", update);
+    $("amount").addEventListener("input", later);
   })();
   </script>
 </body>
