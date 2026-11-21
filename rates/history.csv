@@ -19,3 +19,7 @@ checked_utc,pair,provider,rate,fee,source
 2026-11-20T13:15:09Z,EUR-INR,Aspora,101.81,3,https://www.aspora.com/live-currency-rates/eur-to-inr
 2026-11-20T13:15:10Z,GBP-INR,Aspora,121.51,3,https://www.aspora.com/live-currency-rates/gbp-to-inr
 2026-11-20T13:15:12Z,USD-INR,Aspora,92.59,2.99,https://www.aspora.com/live-currency-rates/usd-to-inr
+2026-11-21T00:12:01Z,EUR-INR,Aspora,101.56,3,https://www.aspora.com/live-currency-rates/eur-to-inr
+2026-11-21T00:12:03Z,GBP-INR,Aspora,121.21,3,https://www.aspora.com/live-currency-rates/gbp-to-inr
+2026-11-21T00:12:04Z,USD-INR,Aspora,92.65,2.99,https://www.aspora.com/live-currency-rates/usd-to-inr
+2026-11-21T00:12:05Z,USD-INR,Scopex,92.89,0,https://scopex.com/send-money/us-to-india/
