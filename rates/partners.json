@@ -1,6 +1,6 @@
 {
   "about": "Rates read from each provider's public website by the Transactofix scheduled check (3 times a day). fee is in the sending currency; null means unknown.",
-  "updated": "2026-11-22T15:40:32Z",
+  "updated": "2026-11-22T23:49:26Z",
   "pairs": {
     "EUR-INR": [
       {
@@ -16,17 +16,17 @@
         "rate": 101.48,
         "fee": 3,
         "feeNote": "About 3 EUR, exact fee shown in app; first transfer free",
-        "checked": "2026-11-22T15:40:27Z",
+        "checked": "2026-11-22T23:49:21Z",
         "source": "https://www.aspora.com/live-currency-rates/eur-to-inr"
       }
     ],
     "USD-INR": [
       {
         "name": "Scopex",
-        "rate": 92.93,
+        "rate": 92.91,
         "fee": 0,
         "feeNote": "Zero transfer fee",
-        "checked": "2026-11-21T23:35:31Z",
+        "checked": "2026-11-22T23:49:26Z",
         "source": "https://scopex.com/send-money/us-to-india/"
       },
       {
@@ -34,7 +34,7 @@
         "rate": 92.68,
         "fee": 2.99,
         "feeNote": "Flat 2.99 USD",
-        "checked": "2026-11-22T15:40:30Z",
+        "checked": "2026-11-22T23:49:24Z",
         "source": "https://www.aspora.com/live-currency-rates/usd-to-inr"
       }
     ],
@@ -44,7 +44,7 @@
         "rate": 121.2,
         "fee": 3,
         "feeNote": "Flat 3 GBP; first transfer free",
-        "checked": "2026-11-22T15:40:28Z",
+        "checked": "2026-11-22T23:49:23Z",
         "source": "https://www.aspora.com/live-currency-rates/gbp-to-inr"
       }
     ]
